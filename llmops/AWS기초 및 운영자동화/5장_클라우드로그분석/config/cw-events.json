@@ -1,0 +1,26 @@
+[
+  {
+    "timestamp": 1784878946071,
+    "message": "INFO method=GET path=/ status=200 latency_ms=32"
+  },
+  {
+    "timestamp": 1784878947071,
+    "message": "INFO method=GET path=/products status=200 latency_ms=48"
+  },
+  {
+    "timestamp": 1784878948071,
+    "message": "WARN method=POST path=/login status=401 latency_ms=61"
+  },
+  {
+    "timestamp": 1784878949071,
+    "message": "ERROR method=GET path=/api/users status=500 latency_ms=215"
+  },
+  {
+    "timestamp": 1784878950071,
+    "message": "ERROR method=POST path=/api/orders status=503 latency_ms=384"
+  },
+  {
+    "timestamp": 1784878951071,
+    "message": "INFO method=GET path=/health status=200 latency_ms=12"
+  }
+]

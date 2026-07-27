@@ -1,0 +1,313 @@
+<title>LLM 기반 AWS 운영 자동화 — 아키텍처 & 동작 원리</title>
+<style>
+  :root {
+    --bg: #f5f7fa;
+    --surface: #ffffff;
+    --surface-2: #eef1f6;
+    --ink: #182230;
+    --ink-soft: #4a586b;
+    --ink-faint: #7c8aa0;
+    --line: #d9e0ea;
+    --line-strong: #b9c4d3;
+    --accent: #3a5bd9;
+    --accent-soft: #e6ebfb;
+    --safe: #0e8a7d;
+    --safe-soft: #dcf3ef;
+    --warn: #c07a1e;
+    --warn-soft: #f8ecd6;
+    --danger: #c0384f;
+    --danger-soft: #f8dee3;
+    --mono: ui-monospace, "SFMono-Regular", "Cascadia Code", Consolas, "Liberation Mono", monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", Roboto, sans-serif;
+    --radius: 10px;
+    --shadow: 0 1px 2px rgba(24,34,48,.06), 0 4px 16px rgba(24,34,48,.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0e141c;
+      --surface: #151d28;
+      --surface-2: #1c2734;
+      --ink: #e6ecf4;
+      --ink-soft: #a9b6c8;
+      --ink-faint: #6f7f94;
+      --line: #26313f;
+      --line-strong: #37455a;
+      --accent: #6d8bff;
+      --accent-soft: #1e2a49;
+      --safe: #3fc6b3;
+      --safe-soft: #133029;
+      --warn: #e0a54a;
+      --warn-soft: #33270f;
+      --danger: #f0788c;
+      --danger-soft: #331520;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #f5f7fa; --surface: #ffffff; --surface-2: #eef1f6; --ink: #182230;
+    --ink-soft: #4a586b; --ink-faint: #7c8aa0; --line: #d9e0ea; --line-strong: #b9c4d3;
+    --accent: #3a5bd9; --accent-soft: #e6ebfb; --safe: #0e8a7d; --safe-soft: #dcf3ef;
+    --warn: #c07a1e; --warn-soft: #f8ecd6; --danger: #c0384f; --danger-soft: #f8dee3;
+    --shadow: 0 1px 2px rgba(24,34,48,.06), 0 4px 16px rgba(24,34,48,.05);
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e141c; --surface: #151d28; --surface-2: #1c2734; --ink: #e6ecf4;
+    --ink-soft: #a9b6c8; --ink-faint: #6f7f94; --line: #26313f; --line-strong: #37455a;
+    --accent: #6d8bff; --accent-soft: #1e2a49; --safe: #3fc6b3; --safe-soft: #133029;
+    --warn: #e0a54a; --warn-soft: #33270f; --danger: #f0788c; --danger-soft: #331520;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--sans); line-height: 1.6; }
+  .wrap { max-width: 940px; margin: 0 auto; padding: 3.5rem 1.5rem 5rem; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: .72rem; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--accent); margin: 0 0 .9rem;
+  }
+  h1 { font-size: clamp(1.7rem, 4vw, 2.6rem); line-height: 1.15; margin: 0 0 1rem; text-wrap: balance; letter-spacing: -.01em; }
+  .lede { font-size: 1.08rem; color: var(--ink-soft); max-width: 62ch; margin: 0 0 1.4rem; }
+  .meta { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 2.5rem; }
+  .tag {
+    font-family: var(--mono); font-size: .72rem; padding: .3rem .6rem;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 999px; color: var(--ink-soft);
+  }
+
+  section { margin-top: 3.2rem; }
+  h2 {
+    font-size: 1.35rem; margin: 0 0 .3rem; letter-spacing: -.01em;
+    display: flex; align-items: baseline; gap: .6rem;
+  }
+  h2 .num { font-family: var(--mono); font-size: .85rem; color: var(--accent); font-weight: 600; }
+  .sub { color: var(--ink-faint); font-size: .95rem; margin: 0 0 1.4rem; }
+
+  /* diagram shell */
+  .diagram {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 1.6rem; box-shadow: var(--shadow); overflow-x: auto;
+  }
+  .flow { display: flex; flex-direction: column; align-items: stretch; gap: 0; min-width: 280px; }
+  .node {
+    border: 1px solid var(--line-strong); background: var(--surface-2); border-radius: 8px;
+    padding: .75rem 1rem; text-align: center;
+  }
+  .node .t { font-weight: 600; font-size: .95rem; }
+  .node .d { font-size: .8rem; color: var(--ink-soft); margin-top: .15rem; }
+  .node code { font-family: var(--mono); font-size: .82rem; }
+  .arrow { align-self: center; color: var(--ink-faint); font-size: 1.1rem; line-height: 1; padding: .35rem 0; }
+  .node.accent { border-color: var(--accent); background: var(--accent-soft); }
+  .node.safe { border-color: var(--safe); background: var(--safe-soft); }
+  .node.warn { border-color: var(--warn); background: var(--warn-soft); }
+  .node.danger { border-color: var(--danger); background: var(--danger-soft); }
+
+  .caption { font-size: .82rem; color: var(--ink-faint); margin-top: .9rem; text-align: center; }
+
+  /* layered stack */
+  .layers { display: flex; flex-direction: column; gap: .5rem; min-width: 300px; }
+  .layer {
+    display: grid; grid-template-columns: 130px 1fr; gap: 1rem; align-items: center;
+    border: 1px solid var(--line); border-radius: 8px; padding: .8rem 1rem; background: var(--surface-2);
+  }
+  .layer .name { font-family: var(--mono); font-weight: 600; font-size: .85rem; color: var(--accent); }
+  .layer .desc { font-size: .88rem; color: var(--ink-soft); }
+  .layer .desc b { color: var(--ink); font-weight: 600; }
+  .dep-note { text-align: center; color: var(--ink-faint); font-size: .78rem; margin: .1rem 0; font-family: var(--mono); }
+
+  /* two column split (converse anatomy) */
+  .split { display: grid; grid-template-columns: 1fr auto 1fr; gap: 1rem; align-items: center; min-width: 320px; }
+  .stack { display: flex; flex-direction: column; gap: .6rem; }
+  .card {
+    border: 1px solid var(--line-strong); border-radius: 8px; padding: .8rem .9rem; background: var(--surface-2);
+  }
+  .card .k { font-family: var(--mono); font-size: .72rem; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-faint); }
+  .card .v { font-size: .9rem; margin-top: .2rem; }
+  .mid-arrow { font-size: 1.4rem; color: var(--accent); }
+  @media (max-width: 640px) {
+    .split { grid-template-columns: 1fr; }
+    .mid-arrow { transform: rotate(90deg); justify-self: center; }
+    .layer { grid-template-columns: 1fr; gap: .3rem; }
+  }
+
+  /* decision gate */
+  .gate { display: flex; flex-direction: column; align-items: center; gap: 0; min-width: 300px; }
+  .branch { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; width: 100%; margin-top: .3rem; }
+  .branch-arrow { display: flex; justify-content: space-around; color: var(--ink-faint); font-size: .95rem; width: 100%; }
+
+  .prose { color: var(--ink-soft); font-size: .95rem; }
+  .prose p { margin: .8rem 0; }
+  .prose b { color: var(--ink); }
+  .prose code { font-family: var(--mono); font-size: .85em; background: var(--surface-2); padding: .1rem .35rem; border-radius: 4px; border: 1px solid var(--line); }
+
+  table { border-collapse: collapse; width: 100%; font-size: .88rem; }
+  .table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); }
+  th, td { text-align: left; padding: .7rem .9rem; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th { font-family: var(--mono); font-size: .74rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-faint); background: var(--surface-2); }
+  tr:last-child td { border-bottom: none; }
+  td .file { font-family: var(--mono); font-size: .82rem; color: var(--accent); }
+  .pill { font-family: var(--mono); font-size: .72rem; padding: .12rem .5rem; border-radius: 999px; }
+  .pill.safe { background: var(--safe-soft); color: var(--safe); }
+  .pill.warn { background: var(--warn-soft); color: var(--warn); }
+  .pill.danger { background: var(--danger-soft); color: var(--danger); }
+
+  footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--line); color: var(--ink-faint); font-size: .82rem; }
+  .legend { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1rem; font-size: .8rem; color: var(--ink-soft); }
+  .legend span { display: inline-flex; align-items: center; gap: .4rem; }
+  .swatch { width: 12px; height: 12px; border-radius: 3px; border: 1px solid var(--line-strong); }
+</style>
+
+<div class="wrap">
+
+  <p class="eyebrow">실습 아키텍처 · 동작 원리</p>
+  <h1>LLM으로 AWS 운영 요청을 분석하고<br>안전한 조회 명령을 만든다</h1>
+  <p class="lede">자연어 운영 요청을 Amazon Bedrock으로 분석해 의도·위험도를 분류하고, 조회 작업만 읽기 전용 CLI 명령으로 만들어내는 파이썬 실습의 구조와 동작 원리를 다이어그램으로 정리했습니다.</p>
+  <div class="meta">
+    <span class="tag">Amazon Bedrock</span>
+    <span class="tag">Converse API</span>
+    <span class="tag">Boto3</span>
+    <span class="tag">Claude Sonnet 4.5</span>
+    <span class="tag">Python 3.12</span>
+  </div>
+
+  <!-- 1. 전체 흐름 -->
+  <section>
+    <h2><span class="num">01</span> 요청 하나가 처리되는 전체 흐름</h2>
+    <p class="sub">자연어 요청이 들어와 화면에 판정이 찍히기까지의 경로입니다.</p>
+    <div class="diagram">
+      <div class="flow">
+        <div class="node"><div class="t">자연어 요청</div><div class="d">"실행 중인 EC2 인스턴스를 확인해줘"</div></div>
+        <div class="arrow">▼</div>
+        <div class="node accent"><div class="t">converse() 호출</div><div class="d"><code>bedrock_utils.py</code> · system(규칙) + user(요청) 조합</div></div>
+        <div class="arrow">▼</div>
+        <div class="node"><div class="t">Amazon Bedrock — Claude</div><div class="d">AWS 클라우드에서 실제 "분석"이 일어나는 곳</div></div>
+        <div class="arrow">▼</div>
+        <div class="node"><div class="t">응답(JSON 형태 텍스트)</div><div class="d">usage(토큰) · stopReason 포함</div></div>
+        <div class="arrow">▼</div>
+        <div class="node"><div class="t">extract_text() → strip_json_fence() → json.loads()</div><div class="d">텍스트 추출 → 코드블록 제거 → 딕셔너리로 파싱</div></div>
+        <div class="arrow">▼</div>
+        <div class="node safe"><div class="t">판정 &amp; 출력</div><div class="d">service · operation_type · command 확인 후 화면 표시</div></div>
+      </div>
+      <p class="caption">로컬 PC는 요청을 다듬어 보내고 응답을 정리할 뿐, 실제 분석은 Bedrock 모델이 수행한다.</p>
+    </div>
+  </section>
+
+  <!-- 2. 계층 구조 -->
+  <section>
+    <h2><span class="num">02</span> 파일 계층 구조</h2>
+    <p class="sub">아래층일수록 기초, 위층일수록 실제 실습. import는 아래 → 위 한 방향으로만 흐른다.</p>
+    <div class="diagram">
+      <div class="layers">
+        <div class="layer"><span class="name">01~06_*.py</span><span class="desc"><b>실습 스크립트</b> — 아래 세 모듈을 조합해 진짜 하고 싶은 일에만 집중</span></div>
+        <div class="dep-note">▲ import</div>
+        <div class="layer"><span class="name">bedrock_utils.py</span><span class="desc"><b>Bedrock 호출 공통 함수</b> — converse() · extract_text() · strip_json_fence()</span></div>
+        <div class="dep-note">▲ import</div>
+        <div class="layer"><span class="name">aws_clients.py</span><span class="desc"><b>AWS 연결</b> — Boto3 Session에서 sts · ec2 · bedrock-runtime 클라이언트 생성</span></div>
+        <div class="dep-note">▲ import</div>
+        <div class="layer"><span class="name">config.py</span><span class="desc"><b>설정의 단일 출처</b> — .env에서 프로파일·리전·모델ID를 읽고 검증(없으면 즉시 중단)</span></div>
+      </div>
+      <p class="caption">공통 로직을 아래층에 모아두어 순환 의존이 없고, 실습 스크립트는 가벼워진다.</p>
+    </div>
+  </section>
+
+  <!-- 3. Converse 해부 -->
+  <section>
+    <h2><span class="num">03</span> Converse API 호출의 구조</h2>
+    <p class="sub">지시문을 <b>역할·규칙(system)</b>과 <b>이번 요청(user)</b>으로 나누는 것이 핵심 원리다.</p>
+    <div class="diagram">
+      <div class="split">
+        <div class="stack">
+          <div class="card accent"><div class="k">system</div><div class="v">"너는 AWS 운영 요청 분석기다. JSON만 반환, 허용값은 이것뿐…" — <b>매 요청 공통 규칙</b></div></div>
+          <div class="card"><div class="k">messages · user</div><div class="v">"실행 중인 EC2 확인해줘" — <b>이번에 처리할 요청</b></div></div>
+          <div class="card"><div class="k">inferenceConfig</div><div class="v">temperature 0.1 (일관성) · maxTokens (응답 길이 상한)</div></div>
+        </div>
+        <div class="mid-arrow">→</div>
+        <div class="stack">
+          <div class="card safe"><div class="k">response.output.message.content</div><div class="v">텍스트 블록 리스트 → extract_text()가 이어붙임</div></div>
+          <div class="card"><div class="k">response.usage</div><div class="v">inputTokens · outputTokens · totalTokens</div></div>
+          <div class="card"><div class="k">response.stopReason</div><div class="v">end_turn(정상) · max_tokens(길이 초과로 잘림)</div></div>
+        </div>
+      </div>
+      <p class="caption">모델은 system을 상위 지침으로 취급 → 규칙을 여기 두면 매번 반복하지 않아도 일관되게 지킨다.</p>
+    </div>
+  </section>
+
+  <!-- 4. 안전 게이트 -->
+  <section>
+    <h2><span class="num">04</span> 조회 / 변경 안전 게이트</h2>
+    <p class="sub">LLM에게 판단은 맡기되 실행 권한은 주지 않는다. 이 분기가 실습의 안전 원칙 그 자체다.</p>
+    <div class="diagram">
+      <div class="gate">
+        <div class="node accent" style="min-width:60%"><div class="t">operation_type 분류</div><div class="d">모델이 요청을 5가지 허용값 중 하나로 판정</div></div>
+        <div class="arrow">▼</div>
+        <div class="branch-arrow"><span>read_only 이면 ↙</span><span>↘ 그 외(change 등)</span></div>
+        <div class="branch">
+          <div class="node safe"><div class="t">읽기 전용 명령 생성</div><div class="d"><code>command</code>에 aws CLI 문자열<br>approval_required = false</div></div>
+          <div class="node warn"><div class="t">실행 대상에서 제외</div><div class="d"><code>command = null</code><br>approval_required = true</div></div>
+        </div>
+        <div class="arrow">▼</div>
+        <div class="node"><div class="t">화면 출력 → 운영자 검토 → 수동 실행 결정</div><div class="d">생성된 명령을 프로그램이 자동 실행하지 않는다</div></div>
+      </div>
+      <div class="legend">
+        <span><span class="swatch" style="background:var(--safe-soft);border-color:var(--safe)"></span> read_only — 조회, 자동 생성 가능</span>
+        <span><span class="swatch" style="background:var(--warn-soft);border-color:var(--warn)"></span> change / security_change — 승인 필요</span>
+        <span><span class="swatch" style="background:var(--danger-soft);border-color:var(--danger)"></span> destructive — 파괴적, 차단</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. 06번 역방향 -->
+  <section>
+    <h2><span class="num">05</span> 06번의 "추측 금지" 패턴</h2>
+    <p class="sub">다른 실습과 흐름이 반대다. 먼저 사실을 조회하고, 그 사실만 근거로 요약하게 한다.</p>
+    <div class="diagram">
+      <div class="flow">
+        <div class="node accent"><div class="t">① Boto3로 실제 EC2 조회</div><div class="d"><code>ec2.describe_instances()</code> — 지금 이 순간의 사실 수집</div></div>
+        <div class="arrow">▼</div>
+        <div class="node"><div class="t">② 필요한 필드 7개만 추림</div><div class="d">id · name · state · type · AZ · private_ip · launch_time (토큰 절약 · 민감정보 최소화)</div></div>
+        <div class="arrow">▼</div>
+        <div class="node"><div class="t">③ 그 결과를 user 프롬프트에 주입</div><div class="d">system: "제공된 결과만 사용, 없으면 없다고 써라"</div></div>
+        <div class="arrow">▼</div>
+        <div class="node safe"><div class="t">④ 운영자용 상태 요약 생성</div><div class="d">모델이 상태를 지어내지 못하게 막는 RAG의 기초 형태</div></div>
+      </div>
+      <p class="caption">LLM은 실시간 AWS 상태를 모른다 → 실제 조회 결과를 근거로 넣어줘야 "환각"을 막을 수 있다.</p>
+    </div>
+  </section>
+
+  <!-- 6. 실습 맵 -->
+  <section>
+    <h2><span class="num">06</span> 실습 파일 한눈에 보기</h2>
+    <p class="sub">03~05는 거의 같은 패턴 — system 규칙만 바꾸면 분류기가 되기도, 명령 생성기가 되기도 한다.</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>파일</th><th>하는 일</th><th>유형</th></tr></thead>
+        <tbody>
+          <tr><td><span class="file">01_check_aws_session.py</span></td><td>STS로 "지금 내가 누구인지" 확인</td><td><span class="pill safe">연결 확인</span></td></tr>
+          <tr><td><span class="file">02_basic_bedrock_call.py</span></td><td>nginx 로그를 주고 진단 명령 요청 · 토큰 확인</td><td><span class="pill safe">기본 호출</span></td></tr>
+          <tr><td><span class="file">03_analyze_operation_request.py</span></td><td>요청을 service · operation_type으로 분류</td><td><span class="pill safe">분류</span></td></tr>
+          <tr><td><span class="file">04_classify_operation_risk.py</span></td><td>요청을 위험도(read_only~prohibited)로 분류</td><td><span class="pill warn">위험도</span></td></tr>
+          <tr><td><span class="file">05_generate_read_only_command.py</span></td><td>조회 요청 → 읽기 전용 CLI 명령 생성</td><td><span class="pill safe">명령 생성</span></td></tr>
+          <tr><td><span class="file">06_ec2_status_summary.py</span></td><td>실제 EC2 조회 → LLM이 요약</td><td><span class="pill safe">조회+요약</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 7. 트러블슈팅 -->
+  <section>
+    <h2><span class="num">07</span> 실제 환경에서 조정한 것</h2>
+    <p class="sub">교재대로 안 되던 지점들 — 왜 설정을 분리하고 코드에서 방어하는지 여기서 드러난다.</p>
+    <div class="diagram">
+      <div class="prose">
+        <p><b>① student 프로파일 없음</b> — 유효한 자격증명이 <code>admin</code>(SSO)뿐이라 <code>.env</code>의 AWS_PROFILE만 바꿔 해결. 설정을 분리해둔 덕에 코드는 그대로.</p>
+        <p><b>② 교재 모델이 Legacy</b> — 지정 모델이 구버전으로 막혀서 활성 모델 <code>global.anthropic.claude-sonnet-4-5</code>로 교체. 모델 ID를 코드에 박지 않은 게 도움.</p>
+        <p><b>③ JSON 파싱 실패</b> — 모델이 답을 <code>```json … ```</code>로 감싸 <code>json.loads()</code>가 실패. 코드블록을 벗기는 <code>strip_json_fence()</code>를 추가해 03~05에 적용.</p>
+        <p><b>④ operation_type이 read가 아니라 read_only여야</b> — 05 프롬프트에 허용값 목록이 빠져 모델이 <code>read</code>로 답함. 허용값을 명시하니 판정이 정확해짐.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    LLM 활용 운영 자동화 · 실습1 &nbsp;·&nbsp; Amazon Bedrock Converse API + Boto3 &nbsp;·&nbsp; 이 페이지는 실습 코드 구조를 설명하기 위한 다이어그램 문서입니다.
+  </footer>
+
+</div>

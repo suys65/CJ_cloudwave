@@ -1,0 +1,53 @@
+{
+  "queryLanguage": "CWLI",
+  "results": [
+    [
+      {
+        "field": "@timestamp",
+        "value": "2026-07-24 07:42:30.071"
+      },
+      {
+        "field": "@message",
+        "value": "ERROR method=POST path=/api/orders status=503 latency_ms=384"
+      },
+      {
+        "field": "@ptr",
+        "value": "CqYBCmsKKDg5Mjg4MDMyOTkwNTovdHJhaW5pbmcva3l0dTcvYXBwbGljYXRpb24QABokYmI3ODdlYTAtM2E0Yy00MDc3LWEwYjMtZjE2MTg1YjYxZDNiIg4IwYrNmPkzEO/X8Jn5M0DBis2Y+TNIABI1GhgCBqWK4v8AAAADRHotRQAGpjF2MAAAB/IgASiXrs2Y+TMwn9XNmPkzOAZAgARImwxQxQYgAhAEGAE="
+      }
+    ],
+    [
+      {
+        "field": "@timestamp",
+        "value": "2026-07-24 07:42:29.071"
+      },
+      {
+        "field": "@message",
+        "value": "ERROR method=GET path=/api/users status=500 latency_ms=215"
+      },
+      {
+        "field": "@ptr",
+        "value": "CqYBCmsKKDg5Mjg4MDMyOTkwNTovdHJhaW5pbmcva3l0dTcvYXBwbGljYXRpb24QABokYmI3ODdlYTAtM2E0Yy00MDc3LWEwYjMtZjE2MTg1YjYxZDNiIg4IwYrNmPkzEO/X8Jn5M0DBis2Y+TNIABI1GhgCBqWK4v8AAAADRHotRQAGpjF2MAAAB/IgASiXrs2Y+TMwn9XNmPkzOAZAgARImwxQxQYgAhADGAE="
+      }
+    ]
+  ],
+  "statistics": {
+    "recordsMatched": 2.0,
+    "recordsScanned": 6.0,
+    "estimatedRecordsSkipped": 0.0,
+    "bytesScanned": 512.0,
+    "estimatedBytesSkipped": 0.0,
+    "logGroupsScanned": 1.0
+  },
+  "status": "Complete",
+  "ResponseMetadata": {
+    "RequestId": "2e728bd6-bcc1-466f-af13-a00e236ae247",
+    "HTTPStatusCode": 200,
+    "HTTPHeaders": {
+      "x-amzn-requestid": "2e728bd6-bcc1-466f-af13-a00e236ae247",
+      "content-type": "application/x-amz-json-1.1",
+      "content-length": "1035",
+      "date": "Fri, 24 Jul 2026 08:27:09 GMT"
+    },
+    "RetryAttempts": 0
+  }
+}

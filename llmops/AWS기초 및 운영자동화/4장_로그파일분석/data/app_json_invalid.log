@@ -1,0 +1,4 @@
+{"time":"2026-04-20T10:01:11","level":"INFO","message":"service started"}
+INVALID JSON LINE
+{"time":"2026-04-20T10:01:15","level":"ERROR","message":"database connection failed"}
+{"time":"2026-04-20T10:01:25","level":"ERROR","message":"timeout occurred"}

@@ -1,0 +1,207 @@
+{
+  "UpdateCount": 0,
+  "ResultSet": {
+    "Rows": [
+      {
+        "Data": [
+          {
+            "VarCharValue": "event_time"
+          },
+          {
+            "VarCharValue": "remoteip"
+          },
+          {
+            "VarCharValue": "requester"
+          },
+          {
+            "VarCharValue": "operation"
+          },
+          {
+            "VarCharValue": "key"
+          },
+          {
+            "VarCharValue": "httpstatus"
+          },
+          {
+            "VarCharValue": "errorcode"
+          }
+        ]
+      },
+      {
+        "Data": [
+          {
+            "VarCharValue": "2026-07-24 01:25:00.000 UTC"
+          },
+          {
+            "VarCharValue": "192.0.2.55"
+          },
+          {
+            "VarCharValue": "arn:aws:iam::892880329905:role/AppRole"
+          },
+          {
+            "VarCharValue": "REST.GET.OBJECT"
+          },
+          {
+            "VarCharValue": "reports/daily.csv"
+          },
+          {
+            "VarCharValue": "500"
+          },
+          {
+            "VarCharValue": "InternalError"
+          }
+        ]
+      },
+      {
+        "Data": [
+          {
+            "VarCharValue": "2026-07-24 01:23:20.000 UTC"
+          },
+          {
+            "VarCharValue": "198.51.100.30"
+          },
+          {
+            "VarCharValue": "-"
+          },
+          {
+            "VarCharValue": "REST.GET.OBJECT"
+          },
+          {
+            "VarCharValue": "private/secret.txt"
+          },
+          {
+            "VarCharValue": "403"
+          },
+          {
+            "VarCharValue": "AccessDenied"
+          }
+        ]
+      },
+      {
+        "Data": [
+          {
+            "VarCharValue": "2026-07-24 01:22:15.000 UTC"
+          },
+          {
+            "VarCharValue": "198.51.100.20"
+          },
+          {
+            "VarCharValue": "arn:aws:iam::892880329905:user/student"
+          },
+          {
+            "VarCharValue": "REST.HEAD.OBJECT"
+          },
+          {
+            "VarCharValue": "test/not-found.txt"
+          },
+          {
+            "VarCharValue": "404"
+          },
+          {
+            "VarCharValue": "NoSuchKey"
+          }
+        ]
+      }
+    ],
+    "ResultSetMetadata": {
+      "ColumnInfo": [
+        {
+          "CatalogName": "hive",
+          "SchemaName": "",
+          "TableName": "",
+          "Name": "event_time",
+          "Label": "event_time",
+          "Type": "timestamp with time zone",
+          "Precision": 3,
+          "Scale": 0,
+          "Nullable": "UNKNOWN",
+          "CaseSensitive": false
+        },
+        {
+          "CatalogName": "hive",
+          "SchemaName": "",
+          "TableName": "",
+          "Name": "remoteip",
+          "Label": "remoteip",
+          "Type": "varchar",
+          "Precision": 2147483647,
+          "Scale": 0,
+          "Nullable": "UNKNOWN",
+          "CaseSensitive": true
+        },
+        {
+          "CatalogName": "hive",
+          "SchemaName": "",
+          "TableName": "",
+          "Name": "requester",
+          "Label": "requester",
+          "Type": "varchar",
+          "Precision": 2147483647,
+          "Scale": 0,
+          "Nullable": "UNKNOWN",
+          "CaseSensitive": true
+        },
+        {
+          "CatalogName": "hive",
+          "SchemaName": "",
+          "TableName": "",
+          "Name": "operation",
+          "Label": "operation",
+          "Type": "varchar",
+          "Precision": 2147483647,
+          "Scale": 0,
+          "Nullable": "UNKNOWN",
+          "CaseSensitive": true
+        },
+        {
+          "CatalogName": "hive",
+          "SchemaName": "",
+          "TableName": "",
+          "Name": "key",
+          "Label": "key",
+          "Type": "varchar",
+          "Precision": 2147483647,
+          "Scale": 0,
+          "Nullable": "UNKNOWN",
+          "CaseSensitive": true
+        },
+        {
+          "CatalogName": "hive",
+          "SchemaName": "",
+          "TableName": "",
+          "Name": "httpstatus",
+          "Label": "httpstatus",
+          "Type": "varchar",
+          "Precision": 2147483647,
+          "Scale": 0,
+          "Nullable": "UNKNOWN",
+          "CaseSensitive": true
+        },
+        {
+          "CatalogName": "hive",
+          "SchemaName": "",
+          "TableName": "",
+          "Name": "errorcode",
+          "Label": "errorcode",
+          "Type": "varchar",
+          "Precision": 2147483647,
+          "Scale": 0,
+          "Nullable": "UNKNOWN",
+          "CaseSensitive": true
+        }
+      ]
+    }
+  },
+  "ResponseMetadata": {
+    "RequestId": "c8d2db6c-36e0-4e43-8fcb-4a5de5eec8fc",
+    "HTTPStatusCode": 200,
+    "HTTPHeaders": {
+      "date": "Fri, 24 Jul 2026 08:27:40 GMT",
+      "content-type": "application/x-amz-json-1.1",
+      "content-length": "2402",
+      "connection": "keep-alive",
+      "x-amzn-requestid": "c8d2db6c-36e0-4e43-8fcb-4a5de5eec8fc"
+    },
+    "RetryAttempts": 0
+  }
+}

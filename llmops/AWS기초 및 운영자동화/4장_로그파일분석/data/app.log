@@ -1,0 +1,5 @@
+2026-04-20 10:01:11 INFO service started
+2026-04-20 10:01:15 ERROR database connection failed
+2026-04-20 10:01:20 INFO retry started
+2026-04-20 10:01:25 ERROR timeout occurred
+2026-04-20 10:01:30 INFO service stopped

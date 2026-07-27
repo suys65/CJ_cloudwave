@@ -1,0 +1,6 @@
+{
+  "LoggingEnabled": {
+    "TargetBucket": "kytu7-s3-logs-892880329905-ap-northeast-2",
+    "TargetPrefix": "s3-access-logs/"
+  }
+}
