@@ -24,6 +24,12 @@ crash.*.log
 output/
 results/
 
+# 7장 측정 결과 CSV (실행 시 생성됨)
+preprocessing_comparison.csv
+max_tokens_comparison.csv
+model_comparison.csv
+usage_report.csv
+
 # OS
 .DS_Store
 Thumbs.db
