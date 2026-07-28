@@ -22,6 +22,7 @@ crash.*.log
 
 # 실습 결과 출력 (JSON Lines 등)
 output/
+results/
 
 # OS
 .DS_Store
