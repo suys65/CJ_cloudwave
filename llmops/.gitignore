@@ -20,6 +20,9 @@ tfplan
 crash.log
 crash.*.log
 
+# 실습 결과 출력 (JSON Lines 등)
+output/
+
 # OS
 .DS_Store
 Thumbs.db
