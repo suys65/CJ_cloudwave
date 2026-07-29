@@ -1,0 +1,101 @@
+#!/bin/bash
+set -xe
+
+# ---------------------------------------------------------------------------
+# 패키지 설치 (Amazon Linux 2023)
+# dnf update(전체 OS 업데이트)는 부팅을 크게 지연시켜 헬스체크 크래시 루프를
+# 유발하므로 생략한다. 필요한 패키지만 설치한다.
+# amazon-ssm-agent는 표준 AL2023에 사전 설치되어 있지만, minimal 변형이나
+# 향후 AMI 변경에 대비해 명시적으로 설치·활성화한다(이중 안전장치).
+# ---------------------------------------------------------------------------
+dnf install -y python3 python3-pip amazon-cloudwatch-agent amazon-ssm-agent
+systemctl enable --now amazon-ssm-agent
+python3 -m pip install fastapi "uvicorn[standard]"
+
+# ---------------------------------------------------------------------------
+# 애플리케이션 로그 디렉터리
+# ---------------------------------------------------------------------------
+mkdir -p /var/log/${service_name}
+mkdir -p /opt/${service_name}
+
+# ---------------------------------------------------------------------------
+# FastAPI 샘플 애플리케이션
+# ---------------------------------------------------------------------------
+cat > /opt/${service_name}/app.py <<'PYEOF'
+import logging
+from fastapi import FastAPI, HTTPException
+
+logging.basicConfig(
+    filename="/var/log/${service_name}/app.log",
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s",
+)
+logger = logging.getLogger("${service_name}")
+
+app = FastAPI(title="${service_name}")
+
+
+@app.get("/")
+def root():
+    logger.info("root endpoint accessed")
+    return {"service": "${service_name}", "status": "running"}
+
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+
+@app.get("/error")
+def generate_error():
+    logger.error("Intentional application error")
+    raise HTTPException(status_code=500, detail="Intentional error")
+PYEOF
+
+# ---------------------------------------------------------------------------
+# systemd 서비스
+# ---------------------------------------------------------------------------
+cat > /etc/systemd/system/${service_name}.service <<SVCEOF
+[Unit]
+Description=${service_name} FastAPI application
+After=network.target
+
+[Service]
+WorkingDirectory=/opt/${service_name}
+ExecStart=/usr/bin/python3 -m uvicorn app:app --host 0.0.0.0 --port ${app_port}
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
+SVCEOF
+
+systemctl daemon-reload
+systemctl enable ${service_name}
+systemctl start ${service_name}
+
+# ---------------------------------------------------------------------------
+# CloudWatch Agent (애플리케이션 로그 전송)
+# ---------------------------------------------------------------------------
+cat > /opt/aws/amazon-cloudwatch-agent/etc/config.json <<'CWEOF'
+{
+  "logs": {
+    "logs_collected": {
+      "files": {
+        "collect_list": [
+          {
+            "file_path": "/var/log/${service_name}/app.log",
+            "log_group_name": "${log_group}",
+            "log_stream_name": "{instance_id}",
+            "retention_in_days": 7
+          }
+        ]
+      }
+    }
+  }
+}
+CWEOF
+
+/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+  -a fetch-config -m ec2 -s \
+  -c file:/opt/aws/amazon-cloudwatch-agent/etc/config.json

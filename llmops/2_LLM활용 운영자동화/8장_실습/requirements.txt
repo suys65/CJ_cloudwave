@@ -1,0 +1,8 @@
+boto3
+botocore
+fastapi
+uvicorn[standard]
+streamlit
+requests
+python-dotenv
+pydantic
