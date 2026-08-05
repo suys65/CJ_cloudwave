@@ -1,0 +1,49 @@
+<! DOCTYPE html>
+<html lang="ko">
+
+<head>
+	<meta charset="UTF-8">
+	<title>챗봇 테스트 페이지</title>
+</head>
+<body>
+	<h1>챗봇 테스트 페이지</h1>
+	<h2>기업 소개</h2>
+	<p>당사는 최신 AI 기술을 활용한 솔루션을 제공합니다 .< /p>
+	<h2>문의</h2>
+	<p>문의 사항은 챗봇을 통해 문의해주세요 .< /p>
+	<script>
+    window.difyChatbotConfig = {
+    token: 'rkgcaDacGUFWnfmB',
+    baseUrl: 'http://172.16.0.200',
+    inputs: {
+        // You can define the inputs from the Start node here
+        // key is the variable name
+        // e.g.
+        // name: "NAME"
+    },
+    systemVariables: {
+        // user_id: 'YOU CAN DEFINE USER ID HERE',
+        // conversation_id: 'YOU CAN DEFINE CONVERSATION ID HERE, IT MUST BE A VALID UUID',
+    },
+    userVariables: {
+        // avatar_url: 'YOU CAN DEFINE USER AVATAR URL HERE',
+        // name: 'YOU CAN DEFINE USER NAME HERE',
+    },
+    }
+    </script>
+    <script
+    src="http://172.16.0.200/embed.min.js"
+    id="rkgcaDacGUFWnfmB"
+    defer>
+    </script>
+    <style>
+    #dify-chatbot-bubble-button {
+        background-color: #1C64F2 !important;
+    }
+    #dify-chatbot-bubble-window {
+        width: 24rem !important;
+        height: 40rem !important;
+    }
+    </style>
+</body>
+</html>
